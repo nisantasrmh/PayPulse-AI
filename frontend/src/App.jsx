@@ -50,7 +50,7 @@ export default function App() {
 
     setTransactions([newTx, ...transactions]);
     setShowWebhookModal(false);
-    setWebhookStatus(`⚡ Live Webhook Received: PAYPAL.${eventType} for ${randomId}. AI Agent automatically processed risk score & updated grid.`);
+    setWebhookStatus(`⚡ Live Webhook Received: PAYPAL.${eventType} for ${randomId}. AI Agent processed risk metrics.`);
   };
 
   // Export Table Data to CSV
@@ -74,6 +74,12 @@ export default function App() {
     if (selectedFilter === 'Pending') return tx.status.includes('Pending');
     return true;
   });
+
+  // Correct Dynamic Success Rate Calculation (Decreases on failures/disputes, increases on completions)
+  const completedCount = transactions.filter(t => t.status.includes('Completed')).length;
+  const failedOrRiskCount = transactions.filter(t => t.status.includes('Failed') || t.status.includes('Disputed')).length;
+  const calculatedRate = 85 - (failedOrRiskCount * 4) + (completedCount * 3);
+  const dynamicSuccessRate = Math.max(30, Math.min(99.9, calculatedRate)).toFixed(1);
 
   const getStatusBadge = (status) => {
     let badgeStyle = 'bg-slate-800 text-slate-300 border-slate-700';
@@ -158,7 +164,7 @@ export default function App() {
           </div>
         )}
 
-        {/* Clean Metrics Grid */}
+        {/* Clean Dynamic Metrics Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="bg-[#0d1117] p-4 rounded-lg border border-slate-800/80">
             <p className="text-xs text-slate-400">Gross Volume</p>
@@ -170,7 +176,7 @@ export default function App() {
           </div>
           <div className="bg-[#0d1117] p-4 rounded-lg border border-slate-800/80">
             <p className="text-xs text-slate-400">Recovery Success Rate</p>
-            <p className="text-xl font-semibold text-slate-200 mt-1">84.2%</p>
+            <p className="text-xl font-semibold text-emerald-400 mt-1">{dynamicSuccessRate}%</p>
           </div>
           <div className="bg-[#0d1117] p-4 rounded-lg border border-slate-800/80">
             <p className="text-xs text-slate-400">Recovered Revenue</p>

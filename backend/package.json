@@ -1,0 +1,23 @@
+{
+  "name": "paypulse-ai-backend",
+  "version": "1.0.0",
+  "description": "Backend for PayPulse AI - PayPal + AI Autonomous B2B Financial Controller",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@paypal/checkout-server-sdk": "^1.0.3",
+    "axios": "^1.7.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "openai": "^4.30.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}

@@ -1,0 +1,10 @@
+# Environment variables (Sensitive Keys)
+.env
+.env.local
+backend/.env
+frontend/.env
+
+# Node modules & build folders
+node_modules/
+dist/
+build/

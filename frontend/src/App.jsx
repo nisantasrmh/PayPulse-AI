@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
 export default function App() {
-  const [transactions] = useState([
+  const [transactions, setTransactions] = useState([
     { id: 'TXN-98412', date: '2026-10-24', amount: '$149.99', payerEmail: 'alex.smith@example.com', status: 'Failed (Risk)' },
     { id: 'TXN-88321', date: '2026-10-23', amount: '$299.00', payerEmail: 'sarah.connor@skynet.io', status: 'Disputed' },
     { id: 'TXN-77615', date: '2026-10-23', amount: '$45.50', payerEmail: 'david.miller@gmail.com', status: 'Completed' },
@@ -11,8 +11,9 @@ export default function App() {
 
   const [aiInsight, setAiInsight] = useState(null);
   const [loadingTxId, setLoadingTxId] = useState(null);
+  const [showWebhookModal, setShowWebhookModal] = useState(false);
+  const [webhookStatus, setWebhookStatus] = useState(null);
 
-  // Har specific Transaction ID ke liye bilkul alag aur unique AI recommendation
   const specificInsights = {
     'TXN-98412': 'AI Risk Mitigation for TXN-98412 ($149.99): Detected unusual proxy IP routing. Automatically dispatched secure PayPal 1-Click biometric verification link to alex.smith@example.com.',
     'TXN-88321': 'Dispute Defense Dossier for TXN-88321 ($299.00): Automatically compiled tracking logs, API delivery timestamp, and buyer interaction history, submitting a complete chargeback defense package to PayPal Resolution Center.',
@@ -23,17 +24,33 @@ export default function App() {
 
   const handleRunAiRecovery = async (transaction) => {
     setLoadingTxId(transaction.id);
-
-    // Simulate smart backend analysis delay
     setTimeout(() => {
       const customMessage = specificInsights[transaction.id] || `AI Agent analyzed transaction ${transaction.id} and initiated automated PayPal recovery workflow.`;
-
       setAiInsight({
         txId: transaction.id,
         message: customMessage
       });
       setLoadingTxId(null);
     }, 400);
+  };
+
+  // Simulate Incoming PayPal Webhook Event
+  const handleSimulateWebhook = (eventType) => {
+    const randomId = `TXN-${Math.floor(10000 + Math.random() * 90000)}`;
+    let newTx = {};
+
+    if (eventType === 'DENIED') {
+      newTx = { id: randomId, date: '2026-10-24', amount: '$189.50', payerEmail: 'new.buyer@sandbox.com', status: 'Failed (Risk)' };
+    } else if (eventType === 'DISPUTED') {
+      newTx = { id: randomId, date: '2026-10-24', amount: '$450.00', payerEmail: 'dispute.client@corp.io', status: 'Disputed' };
+    } else {
+      newTx = { id: randomId, date: '2026-10-24', amount: '$75.00', payerEmail: 'recovered.user@gmail.com', status: 'Completed' };
+    }
+
+    // Add to top of list
+    setTransactions([newTx, ...transactions]);
+    setShowWebhookModal(false);
+    setWebhookStatus(`⚡ Live Webhook Received: PAYPAL.${eventType} for ${randomId}. AI Agent automatically processed risk score & updated grid.`);
   };
 
   const getStatusBadge = (status) => {
@@ -54,8 +71,8 @@ export default function App() {
     <div className="min-h-screen bg-[#090d16] text-slate-200 font-sans p-8">
       <div className="max-w-6xl mx-auto space-y-6">
 
-        {/* Minimal Clean Header */}
-        <header className="flex flex-col md:flex-row justify-between items-start md:items-center pb-6 border-b border-slate-800/80">
+        {/* Minimal Clean Header with Webhook Simulator Button */}
+        <header className="flex flex-col md:flex-row justify-between items-start md:items-center pb-6 border-b border-slate-800/80 gap-4">
           <div>
             <div className="flex items-center gap-3">
               <h1 className="text-xl font-semibold tracking-tight text-white">
@@ -70,11 +87,48 @@ export default function App() {
             </p>
           </div>
 
-          <div className="mt-4 md:mt-0 flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-            <span className="text-xs text-slate-400">PayPal Sandbox Connected</span>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowWebhookModal(!showWebhookModal)}
+              className="bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium px-3.5 py-1.5 rounded transition-colors shadow-sm cursor-pointer flex items-center gap-1.5"
+            >
+              <span>⚡</span> Simulate Webhook
+            </button>
+            <div className="flex items-center gap-2 bg-[#0d1117] px-3 py-1.5 rounded border border-slate-800">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span className="text-xs text-slate-400">Sandbox Connected</span>
+            </div>
           </div>
         </header>
+
+        {/* Webhook Simulation Dropdown Menu */}
+        {showWebhookModal && (
+          <div className="p-4 bg-[#161b22] border border-blue-500/40 rounded-lg shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4 animate-fade-in">
+            <div>
+              <h3 className="text-xs font-bold text-blue-400 uppercase tracking-wider">PayPal Webhook Event Trigger</h3>
+              <p className="text-xs text-slate-400 mt-0.5">Select a sandbox event to push into the live transaction engine:</p>
+            </div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <button onClick={() => handleSimulateWebhook('DENIED')} className="bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 text-xs px-3 py-1.5 rounded font-medium cursor-pointer">
+                🚨 PAYMENT.CAPTURE.DENIED
+              </button>
+              <button onClick={() => handleSimulateWebhook('DISPUTED')} className="bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 text-xs px-3 py-1.5 rounded font-medium cursor-pointer">
+                ⚠️ CUSTOMER.DISPUTE.CREATED
+              </button>
+              <button onClick={() => handleSimulateWebhook('COMPLETED')} className="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-xs px-3 py-1.5 rounded font-medium cursor-pointer">
+                ✅ PAYMENT.CAPTURE.COMPLETED
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Webhook Alert Notification Banner */}
+        {webhookStatus && (
+          <div className="p-3 bg-emerald-950/40 border border-emerald-500/40 rounded-lg flex items-center justify-between gap-4">
+            <p className="text-xs text-emerald-300 font-medium">{webhookStatus}</p>
+            <button onClick={() => setWebhookStatus(null)} className="text-emerald-400 hover:text-white text-xs cursor-pointer">✕</button>
+          </div>
+        )}
 
         {/* Clean Metrics Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -84,7 +138,7 @@ export default function App() {
           </div>
           <div className="bg-[#0d1117] p-4 rounded-lg border border-slate-800/80">
             <p className="text-xs text-slate-400">Failed Transactions</p>
-            <p className="text-xl font-semibold text-red-400 mt-1">2</p>
+            <p className="text-xl font-semibold text-red-400 mt-1">{transactions.filter(t => t.status.includes('Failed') || t.status.includes('Disputed')).length}</p>
           </div>
           <div className="bg-[#0d1117] p-4 rounded-lg border border-slate-800/80">
             <p className="text-xs text-slate-400">Recovery Success Rate</p>
@@ -98,7 +152,7 @@ export default function App() {
 
         {/* Dynamic Contextual AI Banner */}
         {aiInsight && (
-          <div className="p-4 bg-[#0d1117] border border-blue-500/30 rounded-lg flex items-start justify-between gap-4 transition-all animate-fade-in">
+          <div className="p-4 bg-[#0d1117] border border-blue-500/30 rounded-lg flex items-start justify-between gap-4 transition-all">
             <div className="space-y-1">
               <span className="text-[10px] font-mono text-blue-400 uppercase tracking-wider">
                 AI Agent Insight — {aiInsight.txId}
@@ -117,8 +171,8 @@ export default function App() {
         {/* Clean Standard Fintech Table */}
         <div className="bg-[#0d1117] rounded-lg p-5 border border-slate-800/80 space-y-4">
           <div className="flex justify-between items-center">
-            <h2 className="text-sm font-medium text-slate-200">Recent Transactions</h2>
-            <span className="text-[11px] font-mono text-slate-500">Live Grid</span>
+            <h2 className="text-sm font-medium text-slate-200">Recent Transactions (Live Feed)</h2>
+            <span className="text-[11px] font-mono text-slate-500">Total: {transactions.length} items</span>
           </div>
 
           <div className="overflow-x-auto rounded-lg border border-slate-800">

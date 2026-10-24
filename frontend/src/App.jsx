@@ -15,6 +15,7 @@ export default function App() {
   const [webhookStatus, setWebhookStatus] = useState(null);
   const [selectedFilter, setSelectedFilter] = useState('All');
   const [rawPayload, setRawPayload] = useState(null);
+  const [autoPilot, setAutoPilot] = useState(true); // Agent Auto-Pilot State
 
   // Unique Confidence Score aur Step-by-Step Timeline
   const agentAuditDataMap = {
@@ -85,32 +86,48 @@ export default function App() {
     }, 500);
   };
 
-  // Simulate Incoming PayPal Webhook Event
+  // Simulate Incoming PayPal Webhook Event with Auto-Pilot Healer
   const handleSimulateWebhook = (eventType) => {
     const randomId = `TXN-${Math.floor(10000 + Math.random() * 90000)}`;
-    let newTx = {};
+    let initialStatus = 'Failed (Risk)';
+    let amountVal = '$189.50';
+    let payerVal = 'new.buyer@sandbox.com';
 
-    if (eventType === 'DENIED') {
-      newTx = { id: randomId, date: '2026-10-24', amount: '$189.50', payerEmail: 'new.buyer@sandbox.com', status: 'Failed (Risk)' };
-    } else if (eventType === 'DISPUTED') {
-      newTx = { id: randomId, date: '2026-10-24', amount: '$450.00', payerEmail: 'dispute.client@corp.io', status: 'Disputed' };
-    } else {
-      newTx = { id: randomId, date: '2026-10-24', amount: '$75.00', payerEmail: 'recovered.user@gmail.com', status: 'Completed' };
+    if (eventType === 'DISPUTED') {
+      initialStatus = 'Disputed';
+      amountVal = '$450.00';
+      payerVal = 'dispute.client@corp.io';
+    } else if (eventType === 'COMPLETED') {
+      initialStatus = 'Completed';
+      amountVal = '$75.00';
+      payerVal = 'recovered.user@gmail.com';
     }
 
-    const randomConfidence = (88 + Math.random() * 11).toFixed(1) + '%';
+    const newTx = { id: randomId, date: '2026-10-24', amount: amountVal, payerEmail: payerVal, status: initialStatus };
+
+    const randomConfidence = (92 + Math.random() * 7).toFixed(1) + '%';
     agentAuditDataMap[randomId] = {
       confidence: randomConfidence,
       steps: [
         { time: '0.1s', step: 'Live Webhook Ingest', detail: `Captured PAYPAL.${eventType} payload from sandbox stream.` },
         { time: '0.4s', step: 'AI Risk Evaluation', detail: 'Computed real-time fraud score and anomaly metrics.' },
-        { time: '0.8s', step: 'Automated Resolution', detail: 'Dispatched intelligent recovery workflow to buyer endpoint.' }
+        { time: '0.8s', step: 'Autonomous Resolution', detail: autoPilot ? 'Auto-pilot active: Executed instant biometric token recovery.' : 'Dispatched intelligent recovery workflow to buyer endpoint.' }
       ]
     };
 
-    setTransactions([newTx, ...transactions]);
+    setTransactions((prev) => [newTx, ...prev]);
     setShowWebhookModal(false);
     setWebhookStatus(`⚡ Live Webhook Received: PAYPAL.${eventType} for ${randomId}`);
+
+    // If Auto-Pilot is ON, automatically heal the transaction after 1.2 seconds!
+    if (autoPilot && eventType !== 'COMPLETED') {
+      setTimeout(() => {
+        setTransactions((prev) =>
+          prev.map((t) => (t.id === randomId ? { ...t, status: 'Completed (AI Healed)' } : t))
+        );
+        setWebhookStatus(`🤖 Agent Auto-Pilot: Successfully auto-healed transaction ${randomId} in 0.9s!`);
+      }, 1200);
+    }
 
     const mockJsonPayload = {
       id: `WH-${Math.random().toString(36).substring(2, 11).toUpperCase()}`,
@@ -120,9 +137,9 @@ export default function App() {
       summary: `PayPal Sandbox Webhook event triggered for transaction ${randomId}`,
       resource: {
         id: randomId,
-        amount: { currency_code: 'USD', value: newTx.amount.replace('$', '') },
+        amount: { currency_code: 'USD', value: amountVal.replace('$', '') },
         status: eventType === 'COMPLETED' ? 'COMPLETED' : 'DENIED',
-        payer: { email_address: newTx.payerEmail },
+        payer: { email_address: payerVal },
         seller_protection: { status: 'ELIGIBLE' }
       }
     };
@@ -146,13 +163,13 @@ export default function App() {
     if (selectedFilter === 'All') return true;
     if (selectedFilter === 'Failed') return tx.status.includes('Failed');
     if (selectedFilter === 'Disputed') return tx.status.includes('Disputed');
-    if (selectedFilter === 'Completed') return tx.status.includes('Completed');
+    if (selectedFilter === 'Completed') return tx.status.includes('Completed') || tx.status.includes('AI Healed');
     if (selectedFilter === 'Pending') return tx.status.includes('Pending');
     return true;
   });
 
   // Dynamic Success Rate Calculation
-  const completedCount = transactions.filter(t => t.status.includes('Completed')).length;
+  const completedCount = transactions.filter(t => t.status.includes('Completed') || t.status.includes('AI Healed')).length;
   const failedOrRiskCount = transactions.filter(t => t.status.includes('Failed') || t.status.includes('Disputed')).length;
   const calculatedRate = 85 - (failedOrRiskCount * 4) + (completedCount * 3);
   const dynamicSuccessRate = Math.max(30, Math.min(99.9, calculatedRate)).toFixed(1);
@@ -171,6 +188,9 @@ export default function App() {
     } else if (status.includes('Completed')) {
       badgeStyle = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
       riskTag = 'Vault Verified';
+    } else if (status.includes('AI Healed')) {
+      badgeStyle = 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40 animate-pulse';
+      riskTag = '🤖 Auto-Pilot Healed';
     } else if (status.includes('Pending')) {
       badgeStyle = 'bg-blue-500/10 text-blue-400 border-blue-500/20';
       riskTag = 'B2B Compliance';
@@ -186,7 +206,7 @@ export default function App() {
         </span>
         {riskTag && (
           <div className="text-[10px] font-mono text-slate-400 flex items-center gap-1">
-            <span className="text-red-400">⚡</span> {riskTag}
+            <span className={status.includes('AI Healed') ? 'text-emerald-400' : 'text-red-400'}>⚡</span> {riskTag}
           </div>
         )}
       </div>
@@ -197,7 +217,7 @@ export default function App() {
     <div className="min-h-screen bg-[#090d16] text-slate-200 font-sans p-8 relative">
       <div className="max-w-6xl mx-auto space-y-6">
 
-        {/* Minimal Clean Header with Action Buttons */}
+        {/* Minimal Clean Header with Action Buttons & Auto-Pilot Toggle */}
         <header className="flex flex-col md:flex-row justify-between items-start md:items-center pb-6 border-b border-slate-800/80 gap-4">
           <div>
             <div className="flex items-center gap-3">
@@ -214,6 +234,18 @@ export default function App() {
           </div>
 
           <div className="flex items-center gap-3 flex-wrap">
+            {/* Auto-Pilot Toggle Switch */}
+            <button
+              onClick={() => setAutoPilot(!autoPilot)}
+              className={`text-xs font-medium px-3 py-1.5 rounded transition-colors cursor-pointer border flex items-center gap-1.5 ${autoPilot
+                  ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+                  : 'bg-slate-800 text-slate-400 border-slate-700'
+                }`}
+            >
+              <span className={`w-2 h-2 rounded-full ${autoPilot ? 'bg-emerald-500 animate-pulse' : 'bg-slate-500'}`}></span>
+              Auto-Pilot: {autoPilot ? 'ON' : 'OFF'}
+            </button>
+
             <button
               onClick={handleExportCSV}
               className="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-medium px-3.5 py-1.5 rounded transition-colors shadow-sm cursor-pointer flex items-center gap-1.5"
@@ -226,10 +258,6 @@ export default function App() {
             >
               <span>⚡</span> Simulate Webhook
             </button>
-            <div className="flex items-center gap-2 bg-[#0d1117] px-3 py-1.5 rounded border border-slate-800">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span className="text-xs text-slate-400">Sandbox Connected</span>
-            </div>
           </div>
         </header>
 

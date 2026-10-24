@@ -4,7 +4,9 @@
 
 ---
 
-![Node.js](https://img.shields.io/badge/Node‑20%20LTS-6DA55F?logo=node.js&logoColor=white) ![React](https://img.shields.io/badge/React-19.3.1-61DAFB?logo=react&logoColor=white) ![Vite](https://img.shields.io/badge/Vite-5.4.11-646CFF?logo=vite&logoColor=white) ![AG‑Grid](https://img.shields.io/badge/AG%20Grid-33.2.0-00A3E0?logo=grid&logoColor=white) ![OpenAI](https://img.shields.io/badge/OpenAI‑gpt%204o%20mini-412991?logo=openai) ![PayPal](https://img.shields.io/badge/PayPal‑Checkout%20SDK-179CDE?logo=paypal)
+![Render Deploy](https://img.shields.io/badge/Render-Deploy-%2300A8E8?logo=render) ![Live Demo](https://img.shields.io/badge/Live%20Demo-✓-%2300A8E8?logo=web) ![Node.js](https://img.shields.io/badge/Node‑20%20LTS-6DA55F?logo=node.js&logoColor=white) ![React](https://img.shields.io/badge/React-19.3.1-61DAFB?logo=react&logoColor=white) ![Vite](https://img.shields.io/badge/Vite-5.4.11-646CFF?logo=vite&logoColor=white) ![AG‑Grid](https://img.shields.io/badge/AG%20Grid-33.2.0-00A3E0?logo=grid&logoColor=white) ![OpenAI](https://img.shields.io/badge/OpenAI‑gpt%204o%20mini-412991?logo=openai) ![PayPal](https://img.shields.io/badge/PayPal‑Checkout%20SDK-179CDE?logo=paypal)
+
+**Live Demo:** https://paypulse-ai-oq2y.onrender.com
 
 > **“Turn failed payments into revenue‑recovery opportunities—instantly, intelligently, autonomously.”**
 
@@ -206,6 +208,7 @@ AI Recovery Action for TXN-98412:
 - **PayPal Developer Platform** for Sandbox REST APIs and payment capabilities.
 - **OpenAI** for the `gpt-4o-mini` reasoning model.
 - **AG Grid** for the enterprise-grade data grid component[cite: 1].
+- **Render** for reliable, high-performance static site hosting ([Live Demo](https://paypulse-ai-oq2y.onrender.com)).
 
 ---
 

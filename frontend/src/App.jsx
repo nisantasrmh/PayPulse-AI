@@ -13,6 +13,7 @@ export default function App() {
   const [loadingTxId, setLoadingTxId] = useState(null);
   const [showWebhookModal, setShowWebhookModal] = useState(false);
   const [webhookStatus, setWebhookStatus] = useState(null);
+  const [selectedFilter, setSelectedFilter] = useState('All');
 
   const specificInsights = {
     'TXN-98412': 'AI Risk Mitigation for TXN-98412 ($149.99): Detected unusual proxy IP routing. Automatically dispatched secure PayPal 1-Click biometric verification link to alex.smith@example.com.',
@@ -47,11 +48,32 @@ export default function App() {
       newTx = { id: randomId, date: '2026-10-24', amount: '$75.00', payerEmail: 'recovered.user@gmail.com', status: 'Completed' };
     }
 
-    // Add to top of list
     setTransactions([newTx, ...transactions]);
     setShowWebhookModal(false);
     setWebhookStatus(`⚡ Live Webhook Received: PAYPAL.${eventType} for ${randomId}. AI Agent automatically processed risk score & updated grid.`);
   };
+
+  // Export Table Data to CSV
+  const handleExportCSV = () => {
+    const headers = ['Transaction ID,Date,Amount,Payer Email,Status\n'];
+    const rows = transactions.map(t => `${t.id},${t.date},${t.amount},"${t.payerEmail}",${t.status}`).join('\n');
+    const blob = new Blob([headers + rows], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `paypulse-transactions-${Date.now()}.csv`;
+    a.click();
+  };
+
+  // Filter Transactions based on Grouping
+  const filteredTransactions = transactions.filter(tx => {
+    if (selectedFilter === 'All') return true;
+    if (selectedFilter === 'Failed') return tx.status.includes('Failed');
+    if (selectedFilter === 'Disputed') return tx.status.includes('Disputed');
+    if (selectedFilter === 'Completed') return tx.status.includes('Completed');
+    if (selectedFilter === 'Pending') return tx.status.includes('Pending');
+    return true;
+  });
 
   const getStatusBadge = (status) => {
     let badgeStyle = 'bg-slate-800 text-slate-300 border-slate-700';
@@ -71,7 +93,7 @@ export default function App() {
     <div className="min-h-screen bg-[#090d16] text-slate-200 font-sans p-8">
       <div className="max-w-6xl mx-auto space-y-6">
 
-        {/* Minimal Clean Header with Webhook Simulator Button */}
+        {/* Minimal Clean Header with Action Buttons */}
         <header className="flex flex-col md:flex-row justify-between items-start md:items-center pb-6 border-b border-slate-800/80 gap-4">
           <div>
             <div className="flex items-center gap-3">
@@ -87,7 +109,13 @@ export default function App() {
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
+            <button
+              onClick={handleExportCSV}
+              className="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-medium px-3.5 py-1.5 rounded transition-colors shadow-sm cursor-pointer flex items-center gap-1.5"
+            >
+              <span>📥</span> Export CSV
+            </button>
             <button
               onClick={() => setShowWebhookModal(!showWebhookModal)}
               className="bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium px-3.5 py-1.5 rounded transition-colors shadow-sm cursor-pointer flex items-center gap-1.5"
@@ -101,7 +129,7 @@ export default function App() {
           </div>
         </header>
 
-        {/* Webhook Simulation Dropdown Menu */}
+        {/* Webhook Simulation Modal */}
         {showWebhookModal && (
           <div className="p-4 bg-[#161b22] border border-blue-500/40 rounded-lg shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4 animate-fade-in">
             <div>
@@ -168,11 +196,29 @@ export default function App() {
           </div>
         )}
 
-        {/* Clean Standard Fintech Table */}
+        {/* Clean Fintech Table with Grouping / Filtering Tabs */}
         <div className="bg-[#0d1117] rounded-lg p-5 border border-slate-800/80 space-y-4">
-          <div className="flex justify-between items-center">
-            <h2 className="text-sm font-medium text-slate-200">Recent Transactions (Live Feed)</h2>
-            <span className="text-[11px] font-mono text-slate-500">Total: {transactions.length} items</span>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <h2 className="text-sm font-medium text-slate-200">Recent Transactions (Live Feed)</h2>
+              <p className="text-xs text-slate-400 mt-0.5">Showing {filteredTransactions.length} of {transactions.length} entries</p>
+            </div>
+
+            {/* Grouping / Filter Tabs */}
+            <div className="flex items-center gap-1.5 bg-[#161b22] p-1 rounded-lg border border-slate-800">
+              {['All', 'Failed', 'Disputed', 'Completed', 'Pending'].map((filter) => (
+                <button
+                  key={filter}
+                  onClick={() => setSelectedFilter(filter)}
+                  className={`px-3 py-1 rounded text-xs font-medium transition-colors cursor-pointer ${selectedFilter === filter
+                      ? 'bg-slate-800 text-white shadow-sm'
+                      : 'text-slate-400 hover:text-slate-200'
+                    }`}
+                >
+                  {filter}
+                </button>
+              ))}
+            </div>
           </div>
 
           <div className="overflow-x-auto rounded-lg border border-slate-800">
@@ -188,24 +234,32 @@ export default function App() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60 bg-[#0d1117]">
-                {transactions.map((tx) => (
-                  <tr key={tx.id} className="hover:bg-[#161b22]/50 transition-colors">
-                    <td className="px-4 py-3.5 font-mono text-slate-200 font-medium">{tx.id}</td>
-                    <td className="px-4 py-3.5 text-slate-400">{tx.date}</td>
-                    <td className="px-4 py-3.5 font-semibold text-slate-100">{tx.amount}</td>
-                    <td className="px-4 py-3.5 text-slate-400">{tx.payerEmail}</td>
-                    <td className="px-4 py-3.5">{getStatusBadge(tx.status)}</td>
-                    <td className="px-4 py-3.5 text-right">
-                      <button
-                        onClick={() => handleRunAiRecovery(tx)}
-                        disabled={loadingTxId === tx.id}
-                        className="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-[11px] font-medium px-3 py-1 rounded transition-colors cursor-pointer disabled:opacity-50"
-                      >
-                        {loadingTxId === tx.id ? 'Processing...' : 'Run Recovery'}
-                      </button>
+                {filteredTransactions.length > 0 ? (
+                  filteredTransactions.map((tx) => (
+                    <tr key={tx.id} className="hover:bg-[#161b22]/50 transition-colors">
+                      <td className="px-4 py-3.5 font-mono text-slate-200 font-medium">{tx.id}</td>
+                      <td className="px-4 py-3.5 text-slate-400">{tx.date}</td>
+                      <td className="px-4 py-3.5 font-semibold text-slate-100">{tx.amount}</td>
+                      <td className="px-4 py-3.5 text-slate-400">{tx.payerEmail}</td>
+                      <td className="px-4 py-3.5">{getStatusBadge(tx.status)}</td>
+                      <td className="px-4 py-3.5 text-right">
+                        <button
+                          onClick={() => handleRunAiRecovery(tx)}
+                          disabled={loadingTxId === tx.id}
+                          className="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-[11px] font-medium px-3 py-1 rounded transition-colors cursor-pointer disabled:opacity-50"
+                        >
+                          {loadingTxId === tx.id ? 'Processing...' : 'Run Recovery'}
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="6" className="px-4 py-8 text-center text-slate-500">
+                      No transactions found for filter: {selectedFilter}
                     </td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>

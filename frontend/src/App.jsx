@@ -70,7 +70,7 @@ export default function App() {
         confidence: '92.0%',
         steps: [
           { time: '0.1s', step: 'Standard Analysis', detail: `Analyzed transaction ${transaction.id} via PayPal API.` },
-          { time: '0.5s', step: 'Recovery Protocol', detail: 'Generated automated payment retry link.' }
+          { time: '0.5s', step: 'Recovery Protocol', detail: `Generated automated payment retry link for amount ${transaction.amount} (Ref: ${transaction.id}).` }
         ]
       };
 
@@ -109,9 +109,9 @@ export default function App() {
     agentAuditDataMap[randomId] = {
       confidence: randomConfidence,
       steps: [
-        { time: '0.1s', step: 'Live Webhook Ingest', detail: `Captured PAYPAL.${eventType} payload from sandbox stream.` },
-        { time: '0.4s', step: 'AI Risk Evaluation', detail: 'Computed real-time fraud score and anomaly metrics.' },
-        { time: '0.8s', step: 'Autonomous Resolution', detail: autoPilot ? 'Auto-pilot active: Executed instant biometric token recovery.' : 'Dispatched intelligent recovery workflow to buyer endpoint.' }
+        { time: '0.1s', step: 'Live Webhook Ingest', detail: `Captured PAYPAL.${eventType} payload for ${randomId} from sandbox stream.` },
+        { time: '0.4s', step: 'AI Risk Evaluation', detail: `Computed real-time fraud score for amount ${amountVal} (${payerVal}).` },
+        { time: '0.8s', step: 'Autonomous Resolution', detail: autoPilot ? `Auto-pilot active: Executed instant biometric token recovery for ${randomId}.` : `Dispatched intelligent recovery workflow to ${payerVal}.` }
       ]
     };
 
@@ -238,8 +238,8 @@ export default function App() {
             <button
               onClick={() => setAutoPilot(!autoPilot)}
               className={`text-xs font-medium px-3 py-1.5 rounded transition-colors cursor-pointer border flex items-center gap-1.5 ${autoPilot
-                  ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
-                  : 'bg-slate-800 text-slate-400 border-slate-700'
+                ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+                : 'bg-slate-800 text-slate-400 border-slate-700'
                 }`}
             >
               <span className={`w-2 h-2 rounded-full ${autoPilot ? 'bg-emerald-500 animate-pulse' : 'bg-slate-500'}`}></span>
@@ -347,8 +347,8 @@ export default function App() {
                   key={filter}
                   onClick={() => setSelectedFilter(filter)}
                   className={`px-3 py-1 rounded text-xs font-medium transition-colors cursor-pointer ${selectedFilter === filter
-                      ? 'bg-slate-800 text-white shadow-sm'
-                      : 'text-slate-400 hover:text-slate-200'
+                    ? 'bg-slate-800 text-white shadow-sm'
+                    : 'text-slate-400 hover:text-slate-200'
                     }`}
                 >
                   {filter}

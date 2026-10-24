@@ -35,6 +35,13 @@ Even with PayPal’s robust sandbox APIs, current merchant tools offer only *sta
 4. **Returns the AI analysis instantly** to the UI, where merchants can execute the suggested action with a single click.
 
 All of this runs locally in a **Vite + React** front‑end and an **Express** back‑end, ready to be swapped for production PayPal credentials.
+## ✨ Key Features
+
+- **Live PayPal API Webhook Simulator** – Trigger sandbox webhook events and inspect the raw JSON payload via a `</> View Webhook Payload` modal.
+- **Autonomous Agent Auto‑Pilot & Auto‑Heal Mode** – Toggle with the sleek `🤖 Auto‑Pilot: ON/OFF` switch; when enabled the agent automatically heals failed transactions.
+- **Step‑by‑Step AI Audit Timeline Modal** – Shows a detailed timeline of AI decisions with unique dynamic confidence scores (e.g., **91.4%**, **94.8%**).
+- **Real‑time Risk Factor Micro‑Tags** – Instantly visualized tags such as **[Proxy IP / Zip Mismatch]**, **[Chargeback Claim]**, **[Vault Verified]** on each transaction row.
+- **Dynamic Recovery Success Rate & CSV Export** – Live calculation of recovery success rate and one‑click export of transaction data to CSV for further analysis.
 
 ---
 

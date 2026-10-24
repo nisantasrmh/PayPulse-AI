@@ -9,30 +9,80 @@ export default function App() {
     { id: 'TXN-55419', date: '2026-10-21', amount: '$89.99', payerEmail: 'johndoe@yahoo.com', status: 'Failed (Declined)' }
   ]);
 
-  const [aiInsight, setAiInsight] = useState(null);
+  const [auditModalData, setAuditModalData] = useState(null);
   const [loadingTxId, setLoadingTxId] = useState(null);
   const [showWebhookModal, setShowWebhookModal] = useState(false);
   const [webhookStatus, setWebhookStatus] = useState(null);
   const [selectedFilter, setSelectedFilter] = useState('All');
+  const [rawPayload, setRawPayload] = useState(null);
 
-  const specificInsights = {
-    'TXN-98412': 'AI Risk Mitigation for TXN-98412 ($149.99): Detected unusual proxy IP routing. Automatically dispatched secure PayPal 1-Click biometric verification link to alex.smith@example.com.',
-    'TXN-88321': 'Dispute Defense Dossier for TXN-88321 ($299.00): Automatically compiled tracking logs, API delivery timestamp, and buyer interaction history, submitting a complete chargeback defense package to PayPal Resolution Center.',
-    'TXN-77615': 'Transaction Audit for TXN-77615 ($45.50): Status is Verified & Completed. AI Agent confirmed token clearance and scheduled automated merchant settlement.',
-    'TXN-66542': 'Enterprise Compliance Review for TXN-66542 ($1,200.00): High-value B2B transaction under compliance check. Verified corporate registry for enterprise@corp.com and authorized instant fund release.',
-    'TXN-55419': 'Decline Recovery for TXN-55419 ($89.99): Insufficient funds flagged by issuing bank. AI Agent triggered automated PayPal Pay in 4 installment offer sent directly to johndoe@yahoo.com.'
+  // Unique Confidence Score aur Step-by-Step Timeline har transaction ke liye
+  const agentAuditDataMap = {
+    'TXN-98412': {
+      confidence: '91.4%',
+      steps: [
+        { time: '0.1s', step: 'Webhook Captured', detail: 'Received PAYMENT.CAPTURE.DENIED event from PayPal Sandbox API.' },
+        { time: '0.3s', step: 'Risk Telemetry Analysis', detail: 'Detected proxy IP routing & mismatch in billing/shipping zip codes.' },
+        { time: '0.6s', step: 'Autonomous Decision', detail: 'Generated single-use secure 1-Click biometric checkout verification link.' },
+        { time: '0.9s', step: 'Action Dispatched', detail: 'Dispatched SMS & Email payload to alex.smith@example.com.' }
+      ]
+    },
+    'TXN-88321': {
+      confidence: '94.8%',
+      steps: [
+        { time: '0.1s', step: 'Dispute Webhook Alert', detail: 'Received CUSTOMER.DISPUTE.CREATED from PayPal Resolution Center.' },
+        { time: '0.4s', step: 'Evidence Gathering', detail: 'Queried logistics API for carrier delivery timestamp and digital signature.' },
+        { time: '0.7s', step: 'Dossier Synthesis', detail: 'Compiled merchant defense package including chat logs and delivery receipt.' },
+        { time: '1.0s', step: 'Submission Complete', detail: 'Auto-submitted chargeback defense dossier to PayPal API. Status: Protected.' }
+      ]
+    },
+    'TXN-77615': {
+      confidence: '99.2%',
+      steps: [
+        { time: '0.1s', step: 'Transaction Audit', detail: 'Status verified as Completed ($45.50). Zero fraud flags detected.' },
+        { time: '0.4s', step: 'Token Clearance', detail: 'PayPal vault token validated and settled to merchant primary account.' },
+        { time: '0.8s', step: 'Loyalty Enrollment', detail: 'Automatically enrolled payer in merchant retention cashback program.' }
+      ]
+    },
+    'TXN-66542': {
+      confidence: '95.6%',
+      steps: [
+        { time: '0.1s', step: 'High-Value Intercept', detail: 'Intercepted $1,200.00 B2B enterprise transaction pending manual review.' },
+        { time: '0.3s', step: 'Corporate Verification', detail: 'Cross-referenced enterprise@corp.com with global business registry database.' },
+        { time: '0.7s', step: 'Compliance Clearance', detail: 'Tax clearance verified. AI Agent authorized instant fund release.' }
+      ]
+    },
+    'TXN-55419': {
+      confidence: '93.1%',
+      steps: [
+        { time: '0.1s', step: 'Decline Analysis', detail: 'Issuing bank returned insufficient funds error code (10486).' },
+        { time: '0.4s', step: 'Fallback Strategy', detail: 'Calculated credit risk profile and approved PayPal Pay in 4 installment option.' },
+        { time: '0.8s', step: 'Recovery Dispatched', detail: 'Sent customized checkout recovery link with 10% discount to johndoe@yahoo.com.' }
+      ]
+    }
   };
 
-  const handleRunAiRecovery = async (transaction) => {
+  const handleRunAiRecovery = (transaction) => {
     setLoadingTxId(transaction.id);
     setTimeout(() => {
-      const customMessage = specificInsights[transaction.id] || `AI Agent analyzed transaction ${transaction.id} and initiated automated PayPal recovery workflow.`;
-      setAiInsight({
+      const auditInfo = agentAuditDataMap[transaction.id] || {
+        confidence: '92.0%',
+        steps: [
+          { time: '0.1s', step: 'Standard Analysis', detail: `Analyzed transaction ${transaction.id} via PayPal API.` },
+          { time: '0.5s', step: 'Recovery Protocol', detail: 'Generated automated payment retry link.' }
+        ]
+      };
+
+      setAuditModalData({
         txId: transaction.id,
-        message: customMessage
+        amount: transaction.amount,
+        email: transaction.payerEmail,
+        status: transaction.status,
+        confidence: auditInfo.confidence,
+        steps: auditInfo.steps
       });
       setLoadingTxId(null);
-    }, 400);
+    }, 500);
   };
 
   // Simulate Incoming PayPal Webhook Event
@@ -48,9 +98,36 @@ export default function App() {
       newTx = { id: randomId, date: '2026-10-24', amount: '$75.00', payerEmail: 'recovered.user@gmail.com', status: 'Completed' };
     }
 
+    // Dynamic audit profile for simulated webhooks
+    const randomConfidence = (88 + Math.random() * 11).toFixed(1) + '%';
+    agentAuditDataMap[randomId] = {
+      confidence: randomConfidence,
+      steps: [
+        { time: '0.1s', step: 'Live Webhook Ingest', detail: `Captured PAYPAL.${eventType} payload from sandbox stream.` },
+        { time: '0.4s', step: 'AI Risk Evaluation', detail: 'Computed real-time fraud score and anomaly metrics.' },
+        { time: '0.8s', step: 'Automated Resolution', detail: 'Dispatched intelligent recovery workflow to buyer endpoint.' }
+      ]
+    };
+
     setTransactions([newTx, ...transactions]);
     setShowWebhookModal(false);
-    setWebhookStatus(`⚡ Live Webhook Received: PAYPAL.${eventType} for ${randomId}. AI Agent processed risk metrics.`);
+    setWebhookStatus(`⚡ Live Webhook Received: PAYPAL.${eventType} for ${randomId}`);
+
+    const mockJsonPayload = {
+      id: `WH-${Math.random().toString(36).substring(2, 11).toUpperCase()}`,
+      create_time: new Date().toISOString(),
+      resource_type: eventType === 'DISPUTED' ? 'dispute' : 'checkout-order',
+      event_type: `PAYMENT.CAPTURE.${eventType}`,
+      summary: `PayPal Sandbox Webhook event triggered for transaction ${randomId}`,
+      resource: {
+        id: randomId,
+        amount: { currency_code: 'USD', value: newTx.amount.replace('$', '') },
+        status: eventType === 'COMPLETED' ? 'COMPLETED' : 'DENIED',
+        payer: { email_address: newTx.payerEmail },
+        seller_protection: { status: 'ELIGIBLE' }
+      }
+    };
+    setRawPayload(mockJsonPayload);
   };
 
   // Export Table Data to CSV
@@ -75,7 +152,7 @@ export default function App() {
     return true;
   });
 
-  // Correct Dynamic Success Rate Calculation (Decreases on failures/disputes, increases on completions)
+  // Dynamic Success Rate Calculation
   const completedCount = transactions.filter(t => t.status.includes('Completed')).length;
   const failedOrRiskCount = transactions.filter(t => t.status.includes('Failed') || t.status.includes('Disputed')).length;
   const calculatedRate = 85 - (failedOrRiskCount * 4) + (completedCount * 3);
@@ -96,7 +173,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#090d16] text-slate-200 font-sans p-8">
+    <div className="min-h-screen bg-[#090d16] text-slate-200 font-sans p-8 relative">
       <div className="max-w-6xl mx-auto space-y-6">
 
         {/* Minimal Clean Header with Action Buttons */}
@@ -137,7 +214,7 @@ export default function App() {
 
         {/* Webhook Simulation Modal */}
         {showWebhookModal && (
-          <div className="p-4 bg-[#161b22] border border-blue-500/40 rounded-lg shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4 animate-fade-in">
+          <div className="p-4 bg-[#161b22] border border-blue-500/40 rounded-lg shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4">
             <div>
               <h3 className="text-xs font-bold text-blue-400 uppercase tracking-wider">PayPal Webhook Event Trigger</h3>
               <p className="text-xs text-slate-400 mt-0.5">Select a sandbox event to push into the live transaction engine:</p>
@@ -156,11 +233,33 @@ export default function App() {
           </div>
         )}
 
-        {/* Webhook Alert Notification Banner */}
+        {/* Webhook Alert Notification Banner with JSON Payload Inspect Button */}
         {webhookStatus && (
-          <div className="p-3 bg-emerald-950/40 border border-emerald-500/40 rounded-lg flex items-center justify-between gap-4">
+          <div className="p-3 bg-[#0d1117] border border-emerald-500/40 rounded-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <p className="text-xs text-emerald-300 font-medium">{webhookStatus}</p>
-            <button onClick={() => setWebhookStatus(null)} className="text-emerald-400 hover:text-white text-xs cursor-pointer">✕</button>
+            {rawPayload && (
+              <button
+                onClick={() => setRawPayload(rawPayload)}
+                className="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-[11px] px-2.5 py-1 rounded font-mono cursor-pointer"
+              >
+                &lt;/&gt; View Webhook Payload
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Raw PayPal Webhook JSON Payload Modal Viewer */}
+        {rawPayload && typeof rawPayload === 'object' && (
+          <div className="p-4 bg-[#161b22] border border-slate-700 rounded-lg space-y-3">
+            <div className="flex justify-between items-center">
+              <span className="text-xs font-mono text-blue-400 font-bold uppercase tracking-wider">
+                PayPal REST API — Raw Webhook Transmission JSON
+              </span>
+              <button onClick={() => setRawPayload(null)} className="text-slate-400 hover:text-white text-xs cursor-pointer font-bold">✕ Close</button>
+            </div>
+            <pre className="bg-[#090d16] p-3 rounded border border-slate-800 text-[11px] font-mono text-slate-300 overflow-x-auto max-h-48">
+              {JSON.stringify(rawPayload, null, 2)}
+            </pre>
           </div>
         )}
 
@@ -183,24 +282,6 @@ export default function App() {
             <p className="text-xl font-semibold text-emerald-400 mt-1">$448.99</p>
           </div>
         </div>
-
-        {/* Dynamic Contextual AI Banner */}
-        {aiInsight && (
-          <div className="p-4 bg-[#0d1117] border border-blue-500/30 rounded-lg flex items-start justify-between gap-4 transition-all">
-            <div className="space-y-1">
-              <span className="text-[10px] font-mono text-blue-400 uppercase tracking-wider">
-                AI Agent Insight — {aiInsight.txId}
-              </span>
-              <p className="text-xs text-slate-300 leading-relaxed">{aiInsight.message}</p>
-            </div>
-            <button
-              onClick={() => setAiInsight(null)}
-              className="text-slate-400 hover:text-white text-xs p-1 cursor-pointer"
-            >
-              ✕
-            </button>
-          </div>
-        )}
 
         {/* Clean Fintech Table with Grouping / Filtering Tabs */}
         <div className="bg-[#0d1117] rounded-lg p-5 border border-slate-800/80 space-y-4">
@@ -254,7 +335,7 @@ export default function App() {
                           disabled={loadingTxId === tx.id}
                           className="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-[11px] font-medium px-3 py-1 rounded transition-colors cursor-pointer disabled:opacity-50"
                         >
-                          {loadingTxId === tx.id ? 'Processing...' : 'Run Recovery'}
+                          {loadingTxId === tx.id ? 'Analyzing...' : 'Run Recovery'}
                         </button>
                       </td>
                     </tr>
@@ -272,6 +353,68 @@ export default function App() {
         </div>
 
       </div>
+
+      {/* AI Agent Step-by-Step Audit Timeline Modal */}
+      {auditModalData && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-[#0d1117] border border-blue-500/40 rounded-xl max-w-lg w-full p-6 space-y-5 shadow-2xl animate-fade-in">
+
+            {/* Modal Header */}
+            <div className="flex justify-between items-start pb-4 border-b border-slate-800">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-blue-500 animate-ping"></span>
+                  <h3 className="text-sm font-bold text-white uppercase tracking-wider">
+                    Autonomous Agent Audit Timeline
+                  </h3>
+                </div>
+                <p className="text-xs text-slate-400 mt-1 font-mono">
+                  Target: {auditModalData.txId} | Amount: {auditModalData.amount} | Payer: {auditModalData.email}
+                </p>
+              </div>
+              <button
+                onClick={() => setAuditModalData(null)}
+                className="text-slate-400 hover:text-white text-base font-bold px-2 py-1 cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Step-by-Step Timeline Feed */}
+            <div className="space-y-4 max-h-72 overflow-y-auto pr-2">
+              {auditModalData.steps.map((item, index) => (
+                <div key={index} className="flex items-start gap-3 relative pl-4 border-l-2 border-blue-500/50">
+                  <span className="absolute -left-[5px] top-1.5 w-2 h-2 rounded-full bg-blue-400"></span>
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-mono px-2 py-0.5 bg-blue-500/10 text-blue-400 rounded border border-blue-500/20">
+                        {item.time}
+                      </span>
+                      <span className="text-xs font-semibold text-slate-200">{item.step}</span>
+                    </div>
+                    <p className="text-xs text-slate-400 leading-relaxed">{item.detail}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Modal Footer with Unique Dynamic Confidence Score */}
+            <div className="pt-4 border-t border-slate-800 flex justify-between items-center">
+              <span className="text-[11px] text-emerald-400 font-medium flex items-center gap-1.5">
+                <span>✓</span> AI Confidence Score: <strong className="font-mono">{auditModalData.confidence}</strong>
+              </span>
+              <button
+                onClick={() => setAuditModalData(null)}
+                className="bg-blue-600 hover:bg-blue-500 text-white text-xs font-medium px-4 py-1.5 rounded transition-colors cursor-pointer"
+              >
+                Close Audit View
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

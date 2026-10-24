@@ -16,7 +16,7 @@ export default function App() {
   const [selectedFilter, setSelectedFilter] = useState('All');
   const [rawPayload, setRawPayload] = useState(null);
 
-  // Unique Confidence Score aur Step-by-Step Timeline har transaction ke liye
+  // Unique Confidence Score aur Step-by-Step Timeline
   const agentAuditDataMap = {
     'TXN-98412': {
       confidence: '91.4%',
@@ -98,7 +98,6 @@ export default function App() {
       newTx = { id: randomId, date: '2026-10-24', amount: '$75.00', payerEmail: 'recovered.user@gmail.com', status: 'Completed' };
     }
 
-    // Dynamic audit profile for simulated webhooks
     const randomConfidence = (88 + Math.random() * 11).toFixed(1) + '%';
     agentAuditDataMap[randomId] = {
       confidence: randomConfidence,
@@ -158,17 +157,39 @@ export default function App() {
   const calculatedRate = 85 - (failedOrRiskCount * 4) + (completedCount * 3);
   const dynamicSuccessRate = Math.max(30, Math.min(99.9, calculatedRate)).toFixed(1);
 
-  const getStatusBadge = (status) => {
+  // Render Status Badge with Risk Telemetry Micro-Tags
+  const getStatusWithRiskTags = (status, id) => {
     let badgeStyle = 'bg-slate-800 text-slate-300 border-slate-700';
-    if (status.includes('Failed')) badgeStyle = 'bg-red-500/10 text-red-400 border-red-500/20';
-    else if (status.includes('Disputed')) badgeStyle = 'bg-amber-500/10 text-amber-400 border-amber-500/20';
-    else if (status.includes('Completed')) badgeStyle = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
-    else if (status.includes('Pending')) badgeStyle = 'bg-blue-500/10 text-blue-400 border-blue-500/20';
+    let riskTag = null;
+
+    if (status.includes('Failed (Risk)')) {
+      badgeStyle = 'bg-red-500/10 text-red-400 border-red-500/20';
+      riskTag = 'Proxy IP / Zip Mismatch';
+    } else if (status.includes('Disputed')) {
+      badgeStyle = 'bg-amber-500/10 text-amber-400 border-amber-500/20';
+      riskTag = 'Chargeback Claim';
+    } else if (status.includes('Completed')) {
+      badgeStyle = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
+      riskTag = 'Vault Verified';
+    } else if (status.includes('Pending')) {
+      badgeStyle = 'bg-blue-500/10 text-blue-400 border-blue-500/20';
+      riskTag = 'B2B Compliance';
+    } else if (status.includes('Declined')) {
+      badgeStyle = 'bg-red-500/10 text-red-400 border-red-500/20';
+      riskTag = 'Insufficient Funds';
+    }
 
     return (
-      <span className={`px-2.5 py-1 rounded text-[11px] font-medium border ${badgeStyle}`}>
-        {status}
-      </span>
+      <div className="space-y-1">
+        <span className={`inline-block px-2.5 py-0.5 rounded text-[11px] font-medium border ${badgeStyle}`}>
+          {status}
+        </span>
+        {riskTag && (
+          <div className="text-[10px] font-mono text-slate-400 flex items-center gap-1">
+            <span className="text-red-400">⚡</span> {riskTag}
+          </div>
+        )}
+      </div>
     );
   };
 
@@ -328,7 +349,7 @@ export default function App() {
                       <td className="px-4 py-3.5 text-slate-400">{tx.date}</td>
                       <td className="px-4 py-3.5 font-semibold text-slate-100">{tx.amount}</td>
                       <td className="px-4 py-3.5 text-slate-400">{tx.payerEmail}</td>
-                      <td className="px-4 py-3.5">{getStatusBadge(tx.status)}</td>
+                      <td className="px-4 py-3.5">{getStatusWithRiskTags(tx.status, tx.id)}</td>
                       <td className="px-4 py-3.5 text-right">
                         <button
                           onClick={() => handleRunAiRecovery(tx)}
